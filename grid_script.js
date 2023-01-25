@@ -27,6 +27,13 @@ var myCanvasArea = {
     function updateCanvas() {
       snake.update();
       requestAnimationFrame(updateCanvas);
+      document.getElementById("progressDiv").textContent = Math.round(progress*100)/100;
+      document.getElementById("distDiv").textContent = Math.round(distance*100)/100;
+      document.getElementById("snakeXDiv").textContent = Math.round(snake.x);
+      document.getElementById("snakeYDiv").textContent = Math.round(snake.y);
+      document.getElementById("randXDiv").textContent = Math.round(randX);
+      document.getElementById("randYDiv").textContent = Math.round(randY);
+      document.getElementById("angleDiv").textContent = Math.round(angleToPoint*100)/100;
     }
   requestAnimationFrame(updateCanvas);
   },
@@ -54,7 +61,8 @@ function component(width, height, color, x, y) {
     context.restore();
   }
   this.newPos = function() {
-    calcAngle(snake.x, snake.y, randX, randY);
+    
+    distance = calcDist(snake.x,snake.y,randX,randY);
     progress = (distance/maxDist);
     calcSpeed(progress);
     this.x += this.speed * Math.sin(this.angle);
@@ -62,55 +70,57 @@ function component(width, height, color, x, y) {
   }
 }
 
-
-
 /***********************************************************/
+/**********************Calculations*************************/
 /***********************************************************/
-
-function calcSpeed(x) { 
-  snake.speed =  2*(Math.sin((Math.PI)*x))+1;
-  distance = calcDist(Math.floor(snake.x), Math.floor(snake.y), randX, randY); 
-}
-
 function calcDist(x, y, nx, ny) { return Math.sqrt((x - nx)*(x - nx) + (y - ny)*(y - ny)); }
-
 function calcAngle(x, y, nx, ny) {
   angleToPoint = ((Math.atan2(ny - y, nx - x) * 180 / Math.PI));
   snake.angle = angleToPoint;
 }
+function calcSpeed(x) { snake.speed =  2*(Math.sin((Math.PI)*x))+1; }
 
-function changeColor(x) {
-  if (frame!=5000) { frame++; }
+
+/************************* Checks ****************************/
+function randomColor() { return colors[Math.floor(Math.random()*(colors.length))]; }
+function randomCoords() {
+  if (Math.random() > .5) {
+    randY = 0; if (Math.random() > .5) { randY = canvasHeight; }
+    randX = Math.round(Math.random()*canvasWidth);
+  }
+  else {
+    randX = 0; if (Math.random() > .5) { randX = canvasWidth; }
+    randY = Math.round(Math.random()*canvasHeight);
+  }
+}
+function timeToChangeColor(x) {
+  if (x!=5000) { frame++; }
   else { tempx=snake.x; tempy=snake.y; snake = new component(6, 6, randomColor(), tempx, tempy); frame=0; }
 }
-
-function randomColor() { return colors[Math.floor(Math.random()*(colors.length))]; }
-
-function randomCoords() {
-  randX = Math.floor(Math.random() * canvasWidth) + 1;
-  randY = Math.floor(Math.random() * canvasHeight) + 1;
+function checkComplete() { 
+  if (distance <= (snake.speed + 5)) { return true; } else { return false; }
 }
 
-function checkComplete() { 
-  if ((distance <= (20+snake.speed))||(distance <= (20-snake.speed))) { 
+
+/********************* Main Functions ************************/
+function updateCanvas() {
+  timeToChangeColor(frame);
+  calcDist(snake.x,snake.y,randX,randY);
+  if (checkComplete() == true) {
     randomCoords(); 
     maxDist = calcDist(snake.x, snake.y, randX, randY);
-  } 
+  }
+  calcAngle(snake.x, snake.y, randX, randY);
+  snake.newPos();
+  
 }
 
-/***********************************************************/
-/***********************************************************/
 
+/********************** START SNAKE **************************/
 function startSnake() {
   myCanvasArea.start();
   snake = new component(6, 6, randomColor(), 290, 100);
   randomCoords();
-}
-
-function updateCanvas() {
-  changeColor(frame);
-  checkComplete();
-  snake.newPos();
 }
 
 startSnake();
