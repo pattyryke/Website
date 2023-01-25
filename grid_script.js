@@ -24,7 +24,11 @@ var myCanvasArea = {
     this.canvas.height = canvasHeight;
     this.canvas.style.background = "white";
     this.context = this.canvas.getContext("2d");
-    this.interval = setInterval(updateCanvas, 20);
+    function updateCanvas() {
+      snake.update();
+      requestAnimationFrame(updateCanvas);
+    }
+  requestAnimationFrame(updateCanvas);
   },
   clear : function() {
     this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
@@ -40,6 +44,7 @@ function component(width, height, color, x, y) {
   this.angle = angleToPoint;
   this.moveAngle = 1;
   this.update = function() {
+    requestAnimationFrame(updateCanvas);
     context = myCanvasArea.context;
     context.save();
     context.translate(this.x, this.y);
@@ -103,7 +108,6 @@ function startSnake() {
 }
 
 function updateCanvas() {
-  snake.update();
   changeColor(frame);
   checkComplete();
   snake.newPos();
